@@ -52,7 +52,7 @@ st.sidebar.write('This app queries a subset of reviews using similarity search.'
 #st.write('Database query results and visualizations will appear here.')
 
 #api_token = st.text_input('Enter your API token here)', 'API token')
-api_token = "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"
+api_token = 'api_token'
 
 # Example query
 
@@ -106,6 +106,10 @@ text_query = collection.query(
     where=where_clause
 )
 
+# Show and update progress bar
+bar = st.sidebar.progress(50)
+time.sleep(2)
+bar.progress(100)
 
 rows = []
 # Assuming each key's first list item contains lists of equal length
@@ -192,6 +196,6 @@ with tab2:
     
         sentiment_distribution_fig = px.bar(category_sentiment_counts, x='sentiment', y='count',
                                     color='category', barmode='group',
-                                    title='Sentiment Distribution by Category',
+                                    title='Sentiment Distribution by Category (Top 5)',
                                     labels={'count': 'Count', 'sentiment': 'Sentiment', 'category': 'Category'})
         col2.plotly_chart(sentiment_distribution_fig, use_container_width=True)
