@@ -29,7 +29,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 # ChromaDB client
-chroma_client = chromadb.HttpClient(host="localhost", port=8000)
+chroma_client = chromadb.HttpClient(host='localhost', port=8000)
 heartbeat = chroma_client.heartbeat()
 if not heartbeat:
     st.error("Failed to connect to ChromaDB. Please check the logs for more details.")
@@ -81,71 +81,19 @@ else:
     # If no categories are selected, you can choose to omit the 'where' clause or tailor it as needed
     where_clause = {}
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# API token
+api_token = "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"
+
+API_TOKEN = api_token
 
 embedding_cache = {}
-
-@st.cache_data
-def cached_query(payload):
-    API_TOKEN = api_token  # Ensure this is securely managed
-    API_URL = "https://api-inference.huggingface.co/models/BAAI/bge-small-en-v1.5"
-    headers = {"Authorization": f"Bearer {API_TOKEN}"}
-    
-    session = requests.Session()
-    retries = Retry(total=10, backoff_factor=1, status_forcelist=[502, 503, 504])
-    session.mount('http://', HTTPAdapter(max_retries=retries))
-    
-    try:
-        response = session.post(API_URL, headers=headers, json=payload)
-        response.raise_for_status()  # Raises stored HTTPError, if one occurred
-        return response
-    except requests.exceptions.HTTPError as errh:
-        logging.error(f"HTTP Error: {errh}")
-    except requests.exceptions.ConnectionError as errc:
-        logging.error(f"Error Connecting: {errc}")
-    except requests.exceptions.Timeout as errt:
-        logging.error(f"Timeout Error: {errt}")
-    except requests.exceptions.RequestException as err:
-        logging.error(f"Error: {err}")
-
+API_URL = "https://api-inference.huggingface.co/models/BAAI/bge-small-en-v1.5"
+headers = {"Authorization": f"Bearer {API_TOKEN}"}
 def query(payload):
-    logging.info("Sending query to Hugging Face API")
-    response = cached_query(payload)
-    if response and response.status_code == 200:
-        try:
-            return response.json()
-        except ValueError as e:
-            logging.error(f"Error processing response: {e}")
-            st.error("Failed to process the API response.")
-    else:
-        logging.error("Failed to get a valid response from the API")
-        st.error("API query failed. Please check the logs for more details.")
+    response = requests.post(API_URL, headers=headers, json=payload)
+    return response.json()
+query_embedding = query(query_text)
 
-@st.cache_data
-def get_query_embedding(query_text):
-    # Check if the embedding is already in the cache
-    if query_text in embedding_cache:
-        return embedding_cache[query_text]
-
-    # If not cached, fetch the embedding from the API
-    response = cached_query({"inputs": query_text})
-    if response and response.status_code == 200:
-        embedding = response.json()
-        # Store the new embedding in the cache
-        embedding_cache[query_text] = embedding
-        return embedding
-    else:
-        st.error("Failed to fetch the embedding.")
-        return None
-
-with st.spinner('Wait for it...'):
-    query_embedding = get_query_embedding(query_text)
-    if query_embedding is not None:
-        time.sleep(0.5)  # Artificial delay for UX
-        st.sidebar.success('Done!')
-    else:
-        st.sidebar.error('Failed to fetch query embedding.')
 
 #st.write("Checkpoint: After embedding")
 #st.write(embedding)
