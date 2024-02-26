@@ -5,7 +5,7 @@ pandas
 requests
 matplotlib
 seaborn
-st-files-connection
 transformers
 plotly
 streamlit-extras
+typing-extensions
