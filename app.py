@@ -28,10 +28,8 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
-
 # ChromaDB client
-chroma_client = chromadb.PersistentClient(path="chromadb/to")
+chroma_client = chromadb.HttpClient(host="localhost", port=8000)
 heartbeat = chroma_client.heartbeat()
 if not heartbeat:
     st.error("Failed to connect to ChromaDB. Please check the logs for more details.")
@@ -43,6 +41,7 @@ if not collection:
     st.error("Failed to get the collection. Please check the logs for more details.")
     st.stop()
 
+st.sidebar.write("Collection count:", collection_count)
 # Set the title of the page
 st.sidebar.title('AmpleCart feedback analysis app')
 
